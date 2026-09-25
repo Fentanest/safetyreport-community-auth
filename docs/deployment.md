@@ -39,7 +39,7 @@ Edge 함수 배포(`supabase functions deploy community-auth-relay`)는 migratio
 ## 3. DNS와 GitHub Pages (운영자 수동)
 
 1. DNS(Cloudflare, worklazy.net 존): `safeauth` CNAME → `fentanest.github.io`, **DNS 전용**(프록시 끔)으로 두어
-   GitHub 인증서 발급을 막지 않는다.)
+   GitHub 인증서 발급을 막지 않는다.
 2. GitHub 계정 Settings → Pages → **Verified domains**에 `worklazy.net`을 인증해 두면 서브도메인 탈취를 막는다.
 3. 이 저장소 Settings → Pages: Source = GitHub Actions, Custom domain = `safeauth.worklazy.net`, **Enforce HTTPS** 켬.
 4. Settings → Variables: `SAFEAUTH_PUBLIC_SUPABASE_URL`, (선택) `SAFEAUTH_PUBLIC_PUBLISHABLE_KEY`,
