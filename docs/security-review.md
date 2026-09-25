@@ -36,7 +36,7 @@
 ## 3. 별도 서브도메인 (2026-09-25 변경)
 
 중앙 페이지는 `https://safeauth.worklazy.net`이라는 **별도 origin**이다. `worklazy.net`(WorklazyTools)과
-`worklazy.net/safemap`(지도, 카카오 지도 SDK 등 외부 스크립트 포함)의 스크립트는 이 origin의 sessionStorage·DOM에
+`safemap.worklazy.net`(지도, 카카오 지도 SDK 등 외부 스크립트 포함)의 스크립트는 이 origin의 sessionStorage·DOM에
 접근할 수 없고, WorklazyTools의 루트 서비스워커도 이 주소를 제어하지 않는다. 이전의 “같은 origin” 잔여 위험은 해소됐다.
 
 남는 것:
@@ -44,7 +44,7 @@
   중앙 페이지는 쿠키를 쓰지 않고 relay 호출은 `credentials: 'omit'`이다.
 - 서브도메인 탈취: DNS CNAME이 남은 채 Pages 설정이 사라지면 제3자가 그 이름을 가져갈 수 있다. GitHub의 Verified domains로
   `worklazy.net`을 인증해 두고, 서비스를 내릴 때 DNS부터 지운다.
-- `worklazy.net/safemap`(community-map 저장소)과 코드·번들·origin을 공유하지 않는다.
+- `safemap.worklazy.net`(community-map 저장소)과 코드·번들·origin을 공유하지 않는다.
 
 ## 4. 헤더와 호스팅
 

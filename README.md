@@ -24,4 +24,4 @@ npm run stack -- up            # 로컬 Supabase Auth/Postgres/PostgREST (docs/v
 ```
 
 배포는 수동이다: `.github/workflows/publish-pages.yml` (docs/deployment.md). push만으로 배포되지 않는다.
-관련 저장소: `safetyreport`(PC/Docker 서버 쪽), `safetyreport-mobile`(앱), `safetyreport-community-map`(지도, `worklazy.net/safemap`).
+관련 저장소: `safetyreport`(PC/Docker 서버 쪽), `safetyreport-mobile`(앱), `safetyreport-community-map`(지도, `safemap.worklazy.net`).

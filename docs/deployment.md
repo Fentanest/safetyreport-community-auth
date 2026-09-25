@@ -12,14 +12,14 @@
 | 브라우저 Origin | `https://safeauth.worklazy.net` |
 | 모바일 Standalone 복귀 | `com.fentanest.mysafetyreport://auth/callback` |
 
-인증은 **별도 서브도메인(별도 origin)** 이다. `worklazy.net`(WorklazyTools)·`worklazy.net/safemap`(지도)과
+인증은 **별도 서브도메인(별도 origin)** 이다. `worklazy.net`(WorklazyTools)·`safemap.worklazy.net`(지도)과
 브라우저 저장소·스크립트 실행 맥락이 분리된다. 같은 상위 도메인(same-site)이라는 점만 공유한다(보안 검토 §3).
 
 ## 2. 저장소와 주소
 
 - 이 저장소(`Fentanest/safetyreport-community-auth`)가 중앙 인증 페이지·relay Edge 함수·relay migration·테스트의 정본이다.
   배포 주소는 이 저장소의 GitHub Pages → `safeauth.worklazy.net` 하나다.
-- 커뮤니티 지도는 `Fentanest/safetyreport-community-map` → `worklazy.net/safemap`(별도 작업). 두 저장소는 코드·번들·origin을 공유하지 않는다.
+- 커뮤니티 지도는 `Fentanest/safetyreport-community-map` → `safemap.worklazy.net`(그 저장소의 Pages). 두 저장소는 코드·번들·origin을 공유하지 않는다.
   공유하는 것은 같은 Supabase 프로젝트(auth.users)뿐이다.
 - **이 저장소는 private이다.** private 저장소의 GitHub Pages는 유료 요금제(Pro 이상)가 필요하다. 요금제는 확인하지 못했다
   (토큰 권한 부족). 무료 요금제라면 저장소를 공개로 바꾸거나 공개 배포 전용 저장소가 필요하다.
@@ -38,7 +38,7 @@ Edge 함수 배포(`supabase functions deploy community-auth-relay`)는 migratio
 
 ## 3. DNS와 GitHub Pages (운영자 수동)
 
-1. DNS: `safeauth` CNAME → `fentanest.github.io`. (Cloudflare를 쓴다면 처음에는 프록시 끔 = DNS only로 두어
+1. DNS(Cloudflare, worklazy.net 존): `safeauth` CNAME → `fentanest.github.io`, **DNS 전용**(프록시 끔)으로 두어
    GitHub 인증서 발급을 막지 않는다.)
 2. GitHub 계정 Settings → Pages → **Verified domains**에 `worklazy.net`을 인증해 두면 서브도메인 탈취를 막는다.
 3. 이 저장소 Settings → Pages: Source = GitHub Actions, Custom domain = `safeauth.worklazy.net`, **Enforce HTTPS** 켬.
