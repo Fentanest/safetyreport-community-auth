@@ -11,7 +11,8 @@ PC/Docker safetyreport 서버가 PKCE verifier와 Supabase 세션을 소유하�
 | `site/` | 정적 MPA (index·callback·help·privacy), Vite + TypeScript, 광고·분석·외부 CDN 없음 |
 | `server/` | relay 로직 (프로토콜·검증·HMAC·AES-GCM). Edge 함수·Node 테스트·브라우저가 공유 |
 | `supabase/functions/community-auth-relay/` | Supabase Edge 엔트리 (`verify_jwt=false`, 액션별 capability 검증) |
-| `supabase/migrations/` | relay 전용 테이블·원자적 상태 전이 함수 (service_role 전용, 독립 SQL) |
+| `supabase/functions/community-account/` + `server/account.ts` | **사용자 전용** 계정 API(`verify_jwt=true` + getUser·claims): 필수 게이트 상태, 신고내용 공유 동의 grant, writer 연결 등록·재연결·해제, 공유 자료 삭제. 계약 정본은 `safetyreport-community-map/contracts/community-ingest/account-api.md` |
+| `supabase/migrations/` | relay 전용 테이블·원자적 상태 전이 함수, 그리고 `202609260100_community_account_registry.sql`(정책 이력·동의 grant·writer 연결, service_role 전용). 한 Supabase 프로젝트의 합성 순서는 map 레포 `docs/integration/community-ingest/migration-manifest.json` |
 | `scripts/verify-artifact.mjs` | 배포 전 산출물 검사 (허용 목록·CSP·비밀·공식 카카오 에셋 해시) |
 | `tests/` | 단위, 로컬 Supabase 스택 통합, Playwright 브라우저 검수 |
 | `docs/` | protocol, deployment, security-review, verification, acceptance, assets |
