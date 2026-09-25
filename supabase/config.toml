@@ -2,3 +2,8 @@
 # own capability in server/relay.ts.
 [functions.community-auth-relay]
 verify_jwt = false
+
+# User-only account endpoint: the platform verifies the JWT AND server/account.ts calls getUser + checks claims.
+# Kept separate from the pre-login relay above (never share one verify_jwt setting for both).
+[functions.community-account]
+verify_jwt = true

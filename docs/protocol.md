@@ -140,3 +140,11 @@ created → claimed → oauth_started → code_ready → code_delivered → devi
 5. 사용자가 “이 계정으로 연결” → 대기 세션을 현재 세션으로 원자 교체 → `complete`(네트워크 오류면 같은 토큰으로 재시도, 코드 재교환 금지).
 6. 사용자가 거부 → 대기 세션 `logout?scope=local` 후 삭제, `cancel`. 기존 연결은 그대로.
 7. 만료·취소·실패 → 대기 정보 삭제.
+
+## 8. 부록 — 계정 API 와의 관계 (2026-09-26, community-ingest)
+
+relay `/complete` 는 "원래 기기가 세션을 저장했다"는 표시일 뿐 업로드 연결이 아니다. 업로드용 영속 연결·필수 동의는 별도 **사용자 전용**
+함수 `community-account`(이 레포 `server/account.ts`, `verify_jwt=true` + handler 의 getUser·claims 확인)가 맡는다.
+원래 기기는 relay 완료 뒤 같은 세션의 access token 으로 `community-account/status` → (동의) `consent` → `connections` 를 호출한다.
+relay 의 pre-login capability 검증과 계정 API 의 사용자 인증은 코드·설정·테스트가 분리되어 있다(전역 verify_jwt 변경 금지).
+계약 정본: `safetyreport-community-map/contracts/community-ingest/account-api.md`, 게이트 판정: `gate.md`.
