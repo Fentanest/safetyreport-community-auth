@@ -1,0 +1,23 @@
+{
+  "name": "safetyreport-community-auth",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Central account-link page and PKCE device-link relay for 나만의 안전신문고 (safeauth.worklazy.net)",
+  "scripts": {
+    "dev": "vite --config site/vite.config.ts",
+    "build": "tsc -p tsconfig.json && vite build --config site/vite.config.ts",
+    "test": "vitest run",
+    "scan": "node scripts/verify-artifact.mjs --dir dist",
+    "stack": "node tests/stack/stack.mjs"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.117.1",
+    "@types/node": "^22.15.0",
+    "axe-core": "4.13.0",
+    "playwright": "1.63.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  }
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="__SAFEAUTH_CSP__">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="color-scheme" content="light dark">
+  <meta name="safeauth-page" content="index">
+  <title>커뮤니티 계정 연결 · 나만의 안전신문고</title>
+  <script type="module" src="./src/index.ts"></script>
+</head>
+<body>
+  <a class="skip" href="#auth-card">연결 카드로 건너뛰기</a>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-name">나만의 안전신문고<span class="brand-tag">MY SAFETYREPORT · ACCOUNT</span></div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">다크 모드</button>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">커뮤니티 계정 연결</p>
+        <h1 id="page-title"><span>내 기기에서 시작하고,</span><span>카카오로 연결하세요.</span></h1>
+        <p class="lead">이 PC나 서버에 커뮤니티 계정을 연결합니다.<br>연결할 기기를 확인한 뒤 카카오 로그인을 진행해 주세요.</p>
+        <ol class="steps" aria-label="연결 순서">
+          <li class="step active" data-step="1"><span class="step-num" aria-hidden="true">01</span><div class="step-text"><span class="step-title">기기 확인</span><span class="step-caption">원래 앱과 비교코드가 같은지 확인하세요.</span></div></li>
+          <li class="step" data-step="2"><span class="step-num" aria-hidden="true">02</span><div class="step-text"><span class="step-title">카카오 로그인</span><span class="step-caption">카카오 화면에서 계정을 선택합니다.</span></div></li>
+          <li class="step" data-step="3"><span class="step-num" aria-hidden="true">03</span><div class="step-text"><span class="step-title">원래 기기에서 완료</span><span class="step-caption">원래 앱에서 연결할 계정을 확인합니다.</span></div></li>
+        </ol>
+        <div class="side-note"><strong>로그인과 데이터 공유는 별개입니다.</strong>계정 연결만으로 신고 데이터가 업로드되지는 않습니다.<br>공유할 데이터와 업로드 여부는 원래 앱에서 설정하세요.</div>
+      </section>
+      <section class="auth-card" id="auth-card" aria-label="커뮤니티 계정 연결 상태" tabindex="-1">
+        <noscript><p>이 화면은 JavaScript가 필요합니다. 브라우저 설정을 확인해 주세요.</p></noscript>
+      </section>
+      <p class="visually-hidden" id="announcer" role="status" aria-live="polite" aria-atomic="true"></p>
+    </main>
+    <footer>
+      <nav class="footer-links" aria-label="안내 문서">
+        <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보 안내</a>
+        <a href="./help.html" target="_blank" rel="noopener noreferrer">연결 도움말</a>
+      </nav>
+      <p>개인이 만든 비공식 프로젝트 · 정부·공공기관의 공식 서비스가 아닙니다.</p>
+    </footer>
+  </div>
+</body>
+</html>

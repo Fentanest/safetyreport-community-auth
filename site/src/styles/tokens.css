@@ -1,0 +1,32 @@
+/* safeauth design tokens (docs/safeauth kit 02_UI_SPEC token table).
+   Light by default; dark follows the OS unless the viewer picked light, or forced dark.
+   No inline script sets the theme, so the CSP can stay script-src 'self'. */
+:root {
+  color-scheme: light;
+  --page: #F6F5F2; --surface: #FFFFFF; --subtle: #F4F5F7;
+  --text: #202A35; --muted: #586574; --border: #D9DFE6;
+  --control-border: #788695; --accent: #B9483A; --ink: #263544;
+  --on-ink: #FFFFFF; --success: #146B4C; --error: #AD2D3C;
+  --shadow: 0 20px 56px rgba(28, 39, 53, .065);
+  --kakao: #FEE500; --kakao-text: #191600;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #11161D; --surface: #1A222D; --subtle: #222D3A;
+    --text: #F2F5F9; --muted: #B2BDCD; --border: #46566B;
+    --control-border: #8293AB; --accent: #FF9C8A; --ink: #DFE7F2;
+    --on-ink: #14202C; --success: #88DEC0; --error: #FFAFB7;
+    --shadow: 0 20px 56px rgba(0, 0, 0, .14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #11161D; --surface: #1A222D; --subtle: #222D3A;
+  --text: #F2F5F9; --muted: #B2BDCD; --border: #46566B;
+  --control-border: #8293AB; --accent: #FF9C8A; --ink: #DFE7F2;
+  --on-ink: #14202C; --success: #88DEC0; --error: #FFAFB7;
+  --shadow: 0 20px 56px rgba(0, 0, 0, .14);
+}

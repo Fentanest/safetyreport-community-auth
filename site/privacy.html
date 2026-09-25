@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="__SAFEAUTH_CSP__">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="color-scheme" content="light dark">
+  <meta name="safeauth-page" content="privacy">
+  <title>개인정보 안내 · 나만의 안전신문고</title>
+  <script type="module" src="./src/doc.ts"></script>
+</head>
+<body>
+  <a class="skip" href="#doc-main">본문으로 건너뛰기</a>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-name">나만의 안전신문고<span class="brand-tag">MY SAFETYREPORT · ACCOUNT</span></div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">다크 모드</button>
+    </header>
+    <main class="doc" id="doc-main">
+      <p class="eyebrow">개인정보 안내</p>
+      <h1>계정 연결 과정에서 처리하는 정보</h1>
+      <p class="notice">이 문서는 커뮤니티 계정 연결 화면의 <strong>기술적 처리 설명</strong>입니다. 법적 개인정보처리방침을 대신하지 않습니다. 정본 방침: <span id="policy-link">확인 중</span></p>
+
+      <h2>이 페이지가 받거나 전달하는 정보</h2>
+      <table>
+        <thead><tr><th scope="col">항목</th><th scope="col">용도와 보관</th></tr></thead>
+        <tbody>
+          <tr><td>연결 요청 번호, 1회용 연결 티켓</td><td>원래 앱이 만든 연결 링크의 주소 조각(#)으로 전달됩니다. 이 탭의 브라우저 세션 저장소로 옮긴 뒤 주소창에서 지우고, 요청을 이 브라우저에 묶는 데 한 번 사용합니다.</td></tr>
+          <tr><td>이 탭의 브라우저 비밀값</td><td>이 브라우저에서 만든 임의값입니다. 탭의 세션 저장소에 있다가 연결이 끝나거나 탭을 닫으면 사라집니다. 중계 서버에는 해시값만 저장됩니다.</td></tr>
+          <tr><td>기기 표시 이름, 기기 종류, 비교코드</td><td>원래 앱이 보낸 표시값입니다. 확인 화면에만 사용합니다.</td></tr>
+          <tr><td>카카오 로그인 후 받은 1회용 인증 코드</td><td>이 페이지를 거쳐 중계 서버로 전달됩니다. 중계 서버는 이를 암호화해 최대 2분 동안만 보관하고, 연결을 시작한 원래 기기만 가져갈 수 있습니다. 이 코드는 원래 기기가 가진 별도의 검증값 없이는 로그인에 쓸 수 없습니다.</td></tr>
+          <tr><td>접속 IP 주소</td><td>과도한 요청을 막는 횟수 제한에만 쓰며, 비밀 키로 변환한 값만 짧게 저장합니다.</td></tr>
+          <tr><td>화면 테마 선택</td><td>이 브라우저의 로컬 저장소에 라이트/다크 선택만 저장합니다.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>이 페이지가 받지 않는 정보</h2>
+      <p>안전신문고 아이디·비밀번호, 카카오 비밀번호, 전화번호, 신고 내용, 차량번호, 위치 좌표, 사진은 이 페이지에서 입력받거나 조회하지 않습니다. 로그인 세션 토큰은 이 페이지가 아니라 연결을 시작한 원래 기기에 저장됩니다.</p>
+
+      <h2>카카오 로그인으로 전달되는 정보</h2>
+      <p>카카오 로그인 화면에서 동의한 항목(예: 카카오 회원번호, 닉네임, 프로필 사진, 이메일)은 카카오가 운영자의 Supabase 인증 서버에 전달합니다. 이메일 제공에 동의하지 않아도 연결할 수 있습니다. 계정은 인증 서버가 만든 사용자 번호로 구분하며, 닉네임이나 이메일을 계정 식별자로 쓰지 않습니다.</p>
+
+      <h2>보관 기간</h2>
+      <p>연결 요청 기록은 요청 후 약 10분 안에 만료되며, 만료 후 1일이 지난 기록은 정리 작업에서 삭제합니다. 인증 코드는 기기가 가져가거나 만료되면 즉시 지웁니다. 인증 서버의 계정 정보 보관은 정본 개인정보처리방침을 따릅니다.</p>
+
+      <h2>데이터 공유와의 관계</h2>
+      <p>계정 연결은 커뮤니티 데이터 공유 동의가 아닙니다. 신고 데이터 업로드는 원래 앱에서 별도로 명시적으로 동의한 경우에만 이루어집니다.</p>
+
+      <h2>주소에 대한 안내</h2>
+      <p>이 화면은 계정 연결 전용 주소(safeauth.worklazy.net)에서 제공되며 광고·분석 도구를 불러오지 않습니다. worklazy.net의 다른 도구 페이지와는 브라우저 저장소가 분리됩니다.</p>
+
+      <h2>문의</h2>
+      <p id="operator-contact">개인정보처리방침에 적힌 문의처를 이용해 주세요.</p>
+    </main>
+    <footer>
+      <nav class="footer-links" aria-label="안내 문서">
+        <a href="./privacy.html" target="_blank" rel="noopener noreferrer">개인정보 안내</a>
+        <a href="./help.html" target="_blank" rel="noopener noreferrer">연결 도움말</a>
+      </nav>
+      <p>개인이 만든 비공식 프로젝트 · 정부·공공기관의 공식 서비스가 아닙니다.</p>
+    </footer>
+  </div>
+</body>
+</html>

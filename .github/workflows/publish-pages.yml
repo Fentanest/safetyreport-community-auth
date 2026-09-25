@@ -1,0 +1,62 @@
+name: safeauth-pages
+# Publishes https://safeauth.worklazy.net/ from this repository's GitHub Pages site.
+# Manual only. The custom domain is set in Settings -> Pages, with DNS
+# CNAME safeauth -> fentanest.github.io (see docs/deployment.md).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Require configured public values
+        env:
+          SAFEAUTH_PUBLIC_SUPABASE_URL: ${{ vars.SAFEAUTH_PUBLIC_SUPABASE_URL }}
+        run: test -n "$SAFEAUTH_PUBLIC_SUPABASE_URL"
+      - run: npm ci
+      - run: npx vitest run tests/unit.test.ts
+      - name: Build
+        run: npm run build
+        env:
+          SAFEAUTH_PUBLIC_SUPABASE_URL: ${{ vars.SAFEAUTH_PUBLIC_SUPABASE_URL }}
+          SAFEAUTH_PUBLIC_PUBLISHABLE_KEY: ${{ vars.SAFEAUTH_PUBLIC_PUBLISHABLE_KEY }}
+          SAFEAUTH_PUBLIC_PRIVACY_POLICY_URL: ${{ vars.SAFEAUTH_PUBLIC_PRIVACY_POLICY_URL }}
+          SAFEAUTH_PUBLIC_OPERATOR_CONTACT: ${{ vars.SAFEAUTH_PUBLIC_OPERATOR_CONTACT }}
+      - name: Verify artifact (allowlist, CSP, secrets, official Kakao asset)
+        run: node scripts/verify-artifact.mjs --dir dist --require-config --expect-supabase "$SAFEAUTH_PUBLIC_SUPABASE_URL"
+        env:
+          SAFEAUTH_PUBLIC_SUPABASE_URL: ${{ vars.SAFEAUTH_PUBLIC_SUPABASE_URL }}
+          SAFEAUTH_PUBLIC_PRIVACY_POLICY_URL: ${{ vars.SAFEAUTH_PUBLIC_PRIVACY_POLICY_URL }}
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy verified safeauth artifact
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

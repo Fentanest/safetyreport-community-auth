@@ -1,0 +1,4 @@
+# Pre-login device-link relay. Callers have no user JWT yet; each action checks its
+# own capability in server/relay.ts.
+[functions.community-auth-relay]
+verify_jwt = false

@@ -1,0 +1,71 @@
+name: check
+# Verification only. Nothing here deploys or needs secrets: the stack job generates
+# throwaway local keys at runtime.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Unit tests (no containers)
+        run: npx vitest run tests/unit.test.ts
+      - name: Production build is refused with a secret key
+        run: |
+          if SAFEAUTH_PUBLIC_SUPABASE_URL=https://example.supabase.co SAFEAUTH_PUBLIC_PUBLISHABLE_KEY=sb_secret_x npx vite build --config site/vite.config.ts; then
+            echo "secret key was accepted"; exit 1; fi
+      - name: Build (production shape, example public values)
+        run: npm run build
+        env:
+          SAFEAUTH_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      - name: Verify artifact allowlist, CSP, secrets and demo leftovers
+        run: node scripts/verify-artifact.mjs --dir dist --require-config --expect-supabase https://example.supabase.co
+      - name: Deno type check of the Edge function
+        run: docker run --rm -v "$PWD":/work:ro -w /work -e DENO_DIR=/tmp/deno --entrypoint deno denoland/deno:2.5.6 check supabase/functions/community-auth-relay/index.ts
+
+  local-stack:
+    runs-on: ubuntu-latest
+    needs: build-and-unit
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start local Supabase Postgres + Auth + PostgREST and apply migrations
+        run: node tests/stack/stack.mjs up
+      - name: Relay integration (real Supabase Auth PKCE, mock Kakao)
+        run: npx vitest run tests/relay.integration.test.ts
+        env:
+          SAFEAUTH_STACK: '1'
+      - name: Browser review
+        run: |
+          tests/stack/build-local.sh
+          node --experimental-strip-types tests/stack/serve-local.ts .safeauth-stack/dist-local > serve-local.log 2>&1 &
+          sleep 3
+          SAFEAUTH_STACK=1 SAFEAUTH_BROWSER=1 npx vitest run tests/browser.e2e.test.ts --testTimeout 180000
+      - name: Keep screenshots and results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-review
+          path: |
+            docs/qa/screenshots
+            docs/qa/browser-results.json
+          if-no-files-found: ignore
+      - name: Stop stack
+        if: always()
+        run: node tests/stack/stack.mjs down

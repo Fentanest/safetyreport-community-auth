@@ -1,0 +1,13 @@
+node_modules/
+dist/
+# Local verification runtime: generated keys and builds (never commit)
+.safeauth-stack/
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+.DS_Store
