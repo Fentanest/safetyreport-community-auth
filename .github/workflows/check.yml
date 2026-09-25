@@ -1,10 +1,9 @@
 name: check
 # Verification only. Nothing here deploys or needs secrets: the stack job generates
 # throwaway local keys at runtime.
+# No push trigger: pushing never builds. Runs on pull requests or by hand.
 on:
   pull_request:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
