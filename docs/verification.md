@@ -20,7 +20,7 @@
 
 ```bash
 npm ci
-node tests/stack/stack.mjs up                      # 컨테이너 + migration
+SR_MAP_REPO=../safetyreport-community-map node tests/stack/stack.mjs up   # 컨테이너 + migration(계정 registry 는 map 스키마 선행 필요, 없으면 건너뜀)
 npx vitest run tests/unit.test.ts                  # 컨테이너 불필요
 SAFEAUTH_STACK=1 npx vitest run tests/relay.integration.test.ts
 
