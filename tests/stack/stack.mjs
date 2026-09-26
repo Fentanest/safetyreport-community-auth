@@ -105,12 +105,26 @@ async function up() {
   console.log('safeauth local stack ready');
 }
 
+// The account registry (202609260100) builds on the map repository's schema (one shared Supabase project, see
+// safetyreport-community-map docs/integration/community-ingest/migration-manifest.json). Set SR_MAP_REPO to a map
+// checkout to apply its prerequisite migrations first, in version order with this repository's; without it, files
+// that declare "-- Depends on map" are skipped (relay-only stack) and reported.
+const MAP_PREREQUISITES = ['202608150001_initial_schema.sql', '202609240001_analytics_v2.sql'];
+
 function migrate(env = loadStackEnv()) {
   const dir = join(repo, 'supabase/migrations');
-  for (const file of readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) {
+  const mapRepo = process.env.SR_MAP_REPO ? resolve(process.env.SR_MAP_REPO) : null;
+  const files = readdirSync(dir).filter(f => f.endsWith('.sql')).map(f => ({ name: f, path: join(dir, f) }));
+  if (mapRepo) for (const f of MAP_PREREQUISITES) files.push({ name: f, path: join(mapRepo, 'supabase/migrations', f) });
+  for (const { name, path } of files.sort((a, b) => a.name.localeCompare(b.name))) {
+    const text = readFileSync(path, 'utf8');
+    if (!mapRepo && /^-- Depends on map /m.test(text)) {
+      console.log(`skipped ${name} (needs the map schema: set SR_MAP_REPO)`);
+      continue;
+    }
     // Hosted migrations run as the postgres role; do the same here.
-    psql(readFileSync(join(dir, file), 'utf8'), { env, user: 'postgres' });
-    console.log(`applied ${file}`);
+    psql(text, { env, user: 'postgres' });
+    console.log(`applied ${name}`);
   }
   psql("notify pgrst, 'reload schema';", { env });
 }
