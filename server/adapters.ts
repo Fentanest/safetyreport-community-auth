@@ -61,3 +61,28 @@ export function clientAddressFrom(request: Request): string | null {
   const forwarded = request.headers.get('x-forwarded-for');
   return forwarded ? forwarded.split(',')[0].trim() : null;
 }
+
+/** 요청 본문을 최대 max 바이트까지만 읽는다(감사 SOL-10). 선언된 Content-Length 가 max 를 넘거나 숫자가 아니면 읽지 않고,
+ *  선언이 없거나 거짓이어도 읽는 도중 max 를 넘는 순간 스트림을 취소한다. 넘으면 null. */
+export async function readBodyLimited(request: Request, max: number): Promise<Uint8Array | null> {
+  const declared = request.headers.get('content-length');
+  if (declared !== null && declared.trim() !== '' && !(Number(declared) <= max)) return null;
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      try { await reader.cancel(); } catch { /* 이미 닫힘 */ }
+      return null;
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) { out.set(c, offset); offset += c.byteLength; }
+  return out;
+}

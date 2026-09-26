@@ -5,6 +5,7 @@
 // session and consent inside their transactions. Never logs bodies, tokens or user ids.
 
 import { decodeJwtPayload } from './crypto.ts';
+import { readBodyLimited } from './adapters.ts';
 
 export type Rpc = (name: string, args: Record<string, unknown>) => Promise<unknown>;
 
@@ -121,10 +122,10 @@ export function createAccountHandler(deps: AccountDeps): (request: Request) => P
       const m = /^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.exec(auth);
       if (!m) fail('auth_required');
       const token = m![1];
-      const raw = await request.text();
-      if (new TextEncoder().encode(raw).length > MAX_BODY) fail('invalid_request');
+      const bytes = await readBodyLimited(request, MAX_BODY); // 읽는 도중 상한에서 멈춘다(SOL-10)
+      if (!bytes) fail('invalid_request');
       let body: Body;
-      try { body = JSON.parse(raw); } catch { return fail('invalid_request'); }
+      try { body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes!)); } catch { return fail('invalid_request'); }
       if (!body || typeof body !== 'object' || Array.isArray(body)) fail('invalid_request');
       if (body.protocol !== 1) fail('unsupported_protocol');
 
