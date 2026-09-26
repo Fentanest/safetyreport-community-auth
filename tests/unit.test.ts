@@ -142,6 +142,21 @@ describe('relay handler validation (stub repository)', () => {
       method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? JSON.stringify(body) : undefined,
     });
 
+  it('refuses an oversized streamed body while reading it (SOL-10)', async () => {
+    const { h, calls } = await handler();
+    let pulled = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(c) { pulled++; c.enqueue(new Uint8Array(1024).fill(0x20)); },
+    }, { highWaterMark: 0 });
+    const res = await h(new Request(`${SUPA}/functions/v1/community-auth-relay/requests`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: stream, duplex: 'half',
+    } as RequestInit));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe('invalid_request');
+    expect(pulled).toBeLessThanOrEqual(10); // 8 KiB 상한
+    expect(calls.filter(n => n !== 'internal_safeauth_rate_limit')).toEqual([]);
+  });
+
   it('preflight and origin policy', async () => {
     const { h } = await handler();
     const pre = await h(new Request(`${SUPA}/functions/v1/community-auth-relay/claim`, { method: 'OPTIONS', headers: { origin: 'https://safeauth.worklazy.net' } }));

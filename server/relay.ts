@@ -5,6 +5,7 @@
 
 import type { ConfigResult, RelayConfig } from './config.ts';
 import { decodeJwtPayload, openCode, randomDisplayCode, randomSecret, sealCode } from './crypto.ts';
+import { readBodyLimited } from './adapters.ts';
 import {
   ACTIONS, type Action, AUTH_CODE_PATTERN, buildAuthorizeUrl, buildBootstrapUrl, CHALLENGE_PATTERN,
   type ErrorCode, INSTALL_ID_PATTERN, isClientKind, isPhase, normalizeDeviceLabel, PROTOCOL_VERSION,
@@ -150,12 +151,10 @@ export function createRelayHandler(deps: RelayDeps): (request: Request) => Promi
   async function readBody(request: Request): Promise<Body> {
     const type = request.headers.get('content-type') ?? '';
     if (!/^application\/json(\s*;|$)/i.test(type)) fail('invalid_request');
-    const declared = Number(request.headers.get('content-length') ?? '0');
-    if (declared > MAX_BODY_BYTES) fail('invalid_request');
-    const text = await request.text();
-    if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) fail('invalid_request');
+    const bytes = await readBodyLimited(request, MAX_BODY_BYTES); // 선언·실제 크기 모두 읽는 도중 상한에서 멈춘다(SOL-10)
+    if (!bytes) fail('invalid_request');
     let value: unknown;
-    try { value = JSON.parse(text); } catch { fail('invalid_request'); }
+    try { value = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes!)); } catch { fail('invalid_request'); }
     if (!value || typeof value !== 'object' || Array.isArray(value)) fail('invalid_request');
     return value as Body;
   }
