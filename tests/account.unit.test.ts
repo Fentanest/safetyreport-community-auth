@@ -71,6 +71,22 @@ describe('community-account handler', () => {
     expect(res.headers.get('retry-after')).toBe('42');
   });
 
+  it('policy returns the current consent text only when it hashes to the stated hash', async () => {
+    const text = '# [필수] 신고내용 공유 동의\n\n본문 한 줄\n';
+    const hash = createHash('sha256').update(text, 'utf8').digest('hex');
+    const ok = setup({ rpc: n => n === 'internal_account_policy' ? { policy: { version: '2026-09-28.1', consent_text_sha256: hash, consent_text: text } } : {} });
+    const res = await ok.handler(req('policy', { protocol: 1 }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).policy).toEqual({ version: '2026-09-28.1', consent_text_sha256: hash, consent_text: text });
+    expect(ok.calls.find(c => c.name === 'internal_account_policy')!.args).toEqual({});
+    expect(await errorCode(await ok.handler(req('policy', { protocol: 1, version: 'x' })))).toBe('invalid_request');
+    // 본문과 해시가 어긋나면(저장 사고) 앱에 내보내지 않는다
+    const bad = setup({ rpc: n => n === 'internal_account_policy' ? { policy: { version: '2026-09-28.1', consent_text_sha256: hash, consent_text: text + '변조' } } : {} });
+    expect(await errorCode(await bad.handler(req('policy', { protocol: 1 })))).toBe('server_error');
+    expect(await errorCode(await setup({ rpc: () => ({ error: 'server_error' }) }).handler(req('policy', { protocol: 1 })))).toBe('server_error');
+    expect(await errorCode(await setup().handler(req('policy', { protocol: 1 }, null)))).toBe('auth_required');
+  });
+
   it('consent needs an explicit accepted:true and a known channel', async () => {
     const { handler, calls } = setup({ rpc: () => ({ grant_id: 'g', created: true }) });
     const base = { protocol: 1, policy_version: '2026-09-26.1', consent_text_sha256: 'a'.repeat(64), via: 'mobile_standalone' };
