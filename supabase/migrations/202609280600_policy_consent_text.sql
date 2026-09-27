@@ -5,9 +5,8 @@
 -- Owner: safetyreport-community-auth. Depends on 202609260100, 202609280200, 202609280400.
 --
 -- 2026-09-28.1 is still in testing, so its text is replaced in place again (user decision: no version bump until the
--- service opens). The previous text stays in community_policy_texts; grants made on it no longer match the current
--- policy (community_grant_is_current compares the hash), so their status becomes 'outdated' and the app asks again.
--- Once the service opens, a wording change must be a new version instead of an in-place replacement.
+-- service opens) — only while no grant references that version (checked below). The previous text stays in
+-- community_policy_texts. Once anyone has agreed to a version, a wording change must be a new version.
 
 begin;
 
@@ -192,6 +191,16 @@ $consent_text$# [필수] 신고 결과 공유 동의
 문의는 [문의 게시판](https://github.com/Fentanest/safetyreport-community-map/issues)을 이용해 주세요. 공개 게시판이므로 개인정보는 남기지 말아 주세요.
 
 카카오 계정 연결 과정에서 처리하는 정보는 [계정 연결 개인정보 안내](https://safeauth.worklazy.net/privacy.html)에서 확인할 수 있습니다.$consent_text$);
+
+-- Same safety rule as 202609280400: replace the wording of a published version only while nobody has agreed to it.
+-- Otherwise the migration fails and a new version must be published instead (production had 0 grants on 2026-09-27).
+do $$
+begin
+    if exists (select 1 from private.community_consent_grants where policy_version = '2026-09-28.1') then
+        raise exception 'COMMUNITY_POLICY_IN_USE: 2026-09-28.1 already has grants; publish a new version instead';
+    end if;
+end;
+$$;
 
 alter table private.community_policies disable trigger community_policies_no_update;
 update private.community_policies
