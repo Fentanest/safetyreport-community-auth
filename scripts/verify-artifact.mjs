@@ -119,7 +119,9 @@ export function verifyArtifact({ dir, base = '/', requireConfig = false, expectS
     if (name.endsWith('.js') || name.endsWith('.css')) {
       for (const m of text.matchAll(/https?:\/\/[A-Za-z0-9.-]+(?::\d+)?/g)) {
         const origin = m[0];
-        const ok = origin === siteOrigin || origin === 'http://www.w3.org' || (connect && origin === connect) || allowOrigins.includes(origin);
+        // https://github.com: the fixed community Issues link (site/src/doc.ts COMMUNITY_ISSUES_URL), not configurable
+        const ok = origin === siteOrigin || origin === 'http://www.w3.org' || origin === 'https://github.com' ||
+          (connect && origin === connect) || allowOrigins.includes(origin);
         if (!ok) errors.push(`${name}: unexpected URL ${origin}`);
       }
     }
