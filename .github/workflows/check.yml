@@ -65,6 +65,7 @@ jobs:
             docs/qa/screenshots
             docs/qa/browser-results.json
           if-no-files-found: ignore
+          retention-days: 1
       - name: Stop stack
         if: always()
         run: node tests/stack/stack.mjs down
