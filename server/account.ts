@@ -20,7 +20,7 @@ export interface AccountDeps {
   log?(entry: Record<string, string | number>): void;
 }
 
-export const ACCOUNT_ACTIONS = ['status', 'consent', 'consent-revoke', 'connections', 'connections-rebind',
+export const ACCOUNT_ACTIONS = ['status', 'policy', 'consent', 'consent-revoke', 'connections', 'connections-rebind',
   'connections-revoke', 'contributions-delete'] as const;
 type Action = typeof ACCOUNT_ACTIONS[number];
 
@@ -156,6 +156,17 @@ export function createAccountHandler(deps: AccountDeps): (request: Request) => P
           const s = await call('internal_account_status', { p_user: uid, p_session: session, p_connection: connection });
           out = { ...s, account: { fingerprint: (await sha256Hex(`sr-community-account|v1|${uid}`)).slice(0, 32),
             display_name: user!.displayName }, server_time: new Date().toISOString() };
+          break;
+        }
+        case 'policy': {
+          // 현재 공유 동의 정책의 본문(2026-09-27): 앱은 이 본문을 그대로 보여 주고 이 해시로 동의한다(앱에 문서를 넣어 두지 않음).
+          keys(body, []);
+          const r = await call('internal_account_policy', {});
+          const p = (r?.policy ?? null) as Record<string, unknown> | null;
+          const text = p?.consent_text;
+          if (!p || typeof p.version !== 'string' || typeof text !== 'string' || typeof p.consent_text_sha256 !== 'string'
+              || await sha256Hex(text) !== p.consent_text_sha256) fail('server_error');
+          out = { policy: { version: p!.version, consent_text_sha256: p!.consent_text_sha256, consent_text: text } };
           break;
         }
         case 'consent': {
