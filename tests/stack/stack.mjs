@@ -110,6 +110,9 @@ async function up() {
 // checkout to apply its prerequisite migrations first, in version order with this repository's; without it, files
 // that declare "-- Depends on map" are skipped (relay-only stack) and reported.
 const MAP_PREREQUISITES = ['202608150001_initial_schema.sql', '202609240001_analytics_v2.sql'];
+// Files that build on the account registry (itself skipped without the map schema) are skipped with it.
+// Applied migrations are never edited, so this is listed here instead of adding a header to them.
+const BUILDS_ON_ACCOUNT_REGISTRY = ['202609280200_policy_2026_09_28_1.sql'];
 
 function migrate(env = loadStackEnv()) {
   const dir = join(repo, 'supabase/migrations');
@@ -118,7 +121,7 @@ function migrate(env = loadStackEnv()) {
   if (mapRepo) for (const f of MAP_PREREQUISITES) files.push({ name: f, path: join(mapRepo, 'supabase/migrations', f) });
   for (const { name, path } of files.sort((a, b) => a.name.localeCompare(b.name))) {
     const text = readFileSync(path, 'utf8');
-    if (!mapRepo && /^-- Depends on map /m.test(text)) {
+    if (!mapRepo && (/^-- Depends on map /m.test(text) || BUILDS_ON_ACCOUNT_REGISTRY.includes(name))) {
       console.log(`skipped ${name} (needs the map schema: set SR_MAP_REPO)`);
       continue;
     }
