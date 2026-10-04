@@ -36,6 +36,12 @@
 
 Edge 함수 배포(`supabase functions deploy community-auth-relay`)는 migration 이력과 무관하므로 이 저장소에서 바로 한다.
 
+**2026-10-05 추가 migration `202610050100_relay_hardening.sql`** (safetyreport 기술일지 D1-01·D1-02·D1-05):
+`202609251200` 이 적용된 프로젝트에 같은 방법으로 한 번 적용한다. 사용자 FK 를 `ON DELETE CASCADE` 로 바꾸고(연결 완료 기록이 계정 삭제를 막던 문제),
+`internal_safeauth_create` 에 전역 advisory lock 을, `internal_safeauth_browser_status`·`internal_safeauth_cleanup` 에 미수령 코드 만료 → `failed/code_expired`
+전이를 더한다. 함수는 `create or replace`, 권한은 파일 끝에서 다시 준다. 적용 뒤 relay·account Edge 함수도 함께 다시 배포한다(어댑터 오류 코드·기기명 검증 공유).
+community-map 의 `docs/integration/community-ingest/migration-manifest.json` 에 이 파일(sha256 포함)을 등록해야 통합 스택 검사가 통과한다.
+
 ## 3. DNS와 GitHub Pages (운영자 수동)
 
 1. DNS(Cloudflare, worklazy.net 존): `safeauth` CNAME → `fentanest.github.io`, **DNS 전용**(프록시 끔)으로 두어
@@ -81,7 +87,7 @@ Edge 함수 배포(`supabase functions deploy community-auth-relay`)는 migratio
 
 ```bash
 supabase link --project-ref <PROJECT_REF>
-# DB: §2 'migration 이력 주의'의 방법으로 202609251200_community_auth_relay.sql 적용
+# DB: §2 'migration 이력 주의'의 방법으로 202609251200_community_auth_relay.sql, 이어서 202610050100_relay_hardening.sql 적용
 supabase secrets set AUTH_RELAY_HASH_PEPPER=... AUTH_RELAY_ENCRYPTION_KEY=... \
   AUTH_SITE_URL=https://safeauth.worklazy.net/ AUTH_BROWSER_ORIGIN=https://safeauth.worklazy.net AUTH_RELAY_ENABLED=false
 supabase functions deploy community-auth-relay   # config.toml: verify_jwt=false (이 함수만)
