@@ -29,13 +29,14 @@ type Code = 'invalid_request' | 'unsupported_protocol' | 'method_not_allowed' | 
   'kakao_required' | 'policy_mismatch' | 'contributor_suspended' | 'writer_conflict' | 'connection_revoked' |
   'connection_superseded' | 'connection_suspended' | 'stale_grant' | 'rate_limited' | 'busy' | 'service_disabled' | 'server_error';
 
-const STATUS: Record<Code, number> = {
+// 오류 코드별 HTTP 상태와 retryable — 클라이언트 규칙 contracts/community-client(account-errors.json central_codes)과 같아야 한다.
+export const STATUS: Record<Code, number> = {
   invalid_request: 400, unsupported_protocol: 400, method_not_allowed: 405, not_found: 404, auth_required: 401,
   kakao_required: 403, policy_mismatch: 409, contributor_suspended: 403, writer_conflict: 409,
   connection_revoked: 409, connection_superseded: 409, connection_suspended: 409, stale_grant: 409, rate_limited: 429, busy: 503,
   service_disabled: 503, server_error: 500,
 };
-const RETRYABLE = new Set<Code>(['rate_limited', 'busy', 'server_error']);
+export const RETRYABLE = new Set<Code>(['rate_limited', 'busy', 'server_error']);
 const MESSAGES: Record<Code, string> = {
   invalid_request: 'Request body is not valid for this action.', unsupported_protocol: 'Unsupported protocol version.',
   method_not_allowed: 'Only POST is supported.', not_found: 'Not found.',
