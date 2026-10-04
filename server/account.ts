@@ -5,7 +5,8 @@
 // session and consent inside their transactions. Never logs bodies, tokens or user ids.
 
 import { decodeJwtPayload } from './crypto.ts';
-import { readBodyLimited } from './adapters.ts';
+import { readBodyLimited, RepositoryError } from './adapters.ts';
+import { normalizeDeviceLabel } from './protocol.ts';
 
 export type Rpc = (name: string, args: Record<string, unknown>) => Promise<unknown>;
 
@@ -82,14 +83,11 @@ function keys(body: Body, required: string[], optional: string[] = []): void {
 }
 const str = (v: unknown, re: RegExp): string => (typeof v === 'string' && re.test(v) ? v : fail('invalid_request'));
 
+// Same rule as the relay's device label (protocol.ts) — one validator, so both endpoints accept the same input.
 function normalizeLabel(v: unknown): string {
-  if (typeof v !== 'string') return fail('invalid_request');
-  const s = v.normalize('NFC').replace(/\s+/g, ' ').trim();
-  if (s.length < 1 || [...s].length > 40 || /[\u0000-\u001f\u007f‪-‮⁦-⁩<>"'`\\]/.test(s) || /^[a-z][a-z0-9+.-]*:/i.test(s)) {
-    return fail('invalid_request');
-  }
-  return s;
+  return normalizeDeviceLabel(v) ?? fail('invalid_request');
 }
+
 
 function rpcError(result: Record<string, unknown>): never {
   const code = String(result.error ?? 'server_error');
@@ -215,7 +213,8 @@ export function createAccountHandler(deps: AccountDeps): (request: Request) => P
       deps.log?.({ event: 'community_account', action, outcome: 'ok', trace });
       return json(200, { protocol: 1, ...out });
     } catch (error) {
-      const f = error instanceof Failure ? error : new Failure(/40P01|40001|deadlock|serializ/i.test(String(error)) ? 'busy' : 'server_error');
+      const busy = error instanceof RepositoryError ? error.retryable : /40P01|40001|deadlock|serializ/i.test(String(error));
+      const f = error instanceof Failure ? error : new Failure(busy ? 'busy' : 'server_error');
       deps.log?.({ event: 'community_account', action, outcome: f.code, trace });
       const headers: Record<string, string> = f.retryAfter ? { 'Retry-After': String(f.retryAfter) } : {};
       return json(STATUS[f.code], { error: { code: f.code, message: MESSAGES[f.code], requestTraceId: trace,

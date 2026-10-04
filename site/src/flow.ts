@@ -28,6 +28,8 @@ export class FlowController {
   }
 
   persist(): void {
+    // A stopped controller (terminal screen shown, browser secret cleared) must not write the secret back.
+    if (this.stopped) return;
     try { saveFlow(this.flow); } catch { /* storage became unavailable; in-memory flow continues */ }
   }
 
@@ -57,7 +59,8 @@ export class FlowController {
         return;
       case 'rate_limited':
         this.view.render({ kind: 'network', busy: true, onRetry: retry });
-        window.setTimeout(retry, Math.min(MAX_BACKOFF_MS, (result.retryAfterSeconds ?? 5) * 1000));
+        // The server's Retry-After is a minimum; MAX_BACKOFF_MS only caps our own network backoff.
+        window.setTimeout(() => { if (!this.stopped) retry(); }, Math.max(1, result.retryAfterSeconds ?? 5) * 1000);
         return;
       case 'invalid_state':
         void this.refresh();
@@ -80,6 +83,9 @@ export class FlowController {
   }
 
   route(phase: Phase): void {
+    // Late responses (a poll that was in flight when the countdown expired, a cancel that raced a finish)
+    // must not bring a finished flow back to a waiting screen.
+    if (this.stopped) return;
     this.flow.phase = phase;
     if ((TERMINAL_PHASES as readonly string[]).includes(phase)) {
       this.finish(phase as 'device_confirmed' | 'cancelled' | 'expired' | 'failed');
@@ -87,7 +93,12 @@ export class FlowController {
     }
     this.persist();
     if (phase === 'claimed') this.renderReady();
-    else if (phase === 'oauth_started') this.view.render({ kind: 'redirecting', onRetry: () => { void this.startOAuth(); }, onCancel: () => { void this.cancel(); }, retried: true });
+    else if (phase === 'oauth_started') {
+      // Back from Kakao (or reloaded): keep checking so expiry or a cancel on the device is noticed
+      // without restarting Kakao login automatically.
+      this.view.render({ kind: 'redirecting', onRetry: () => { void this.startOAuth(); }, onCancel: () => { void this.cancel(); }, retried: true });
+      this.schedulePoll(POLL_MS);
+    }
     else if (phase === 'code_ready' || phase === 'code_delivered') {
       this.view.render({ kind: 'waiting', device: this.device(), delivered: phase === 'code_delivered' });
       this.schedulePoll(POLL_MS);
@@ -108,6 +119,7 @@ export class FlowController {
   async refresh(): Promise<void> {
     if (this.stopped) return;
     const result = await call<PhaseData>(this.config, 'browser-status', { request_id: this.flow.requestId, browser_secret: this.flow.browserSecret });
+    if (this.stopped) return;
     if (!result.ok) { this.handleError(result, () => { void this.refresh(); }); return; }
     if (!isPhase(result.data.phase)) { this.view.render({ kind: 'failed', traceId: null }); return; }
     if (typeof result.data.expires_at === 'string') this.flow.expiresAt = result.data.expires_at;
@@ -127,6 +139,7 @@ export class FlowController {
     if (this.stopped) return;
     const before = this.flow.phase;
     const result = await call<PhaseData>(this.config, 'browser-status', { request_id: this.flow.requestId, browser_secret: this.flow.browserSecret });
+    if (this.stopped) return;
     if (!result.ok) {
       if (result.kind === 'network') {
         this.failures += 1;
@@ -155,6 +168,7 @@ export class FlowController {
       request_id: this.flow.requestId, browser_secret: this.flow.browserSecret, confirmed_started_by_me: true,
     });
     this.busy = false;
+    if (this.stopped) return;
     if (!result.ok) {
       if (result.kind === 'relay' && result.code === 'prepare_limit') {
         this.stop();
@@ -184,6 +198,7 @@ export class FlowController {
 
   async cancel(): Promise<void> {
     const result = await call<PhaseData>(this.config, 'cancel', { request_id: this.flow.requestId, actor: 'browser', secret: this.flow.browserSecret });
+    if (this.stopped) return;
     if (result.ok && isPhase(result.data.phase)) { this.route(result.data.phase); return; }
     if (!result.ok && result.kind === 'relay' && result.code === 'already_completed') { this.finish('device_confirmed'); return; }
     if (!result.ok) this.handleError(result, () => { void this.cancel(); });

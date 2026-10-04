@@ -13,10 +13,26 @@ export interface MinimalSupabase {
   };
 }
 
+// A repository failure keeps only the SQLSTATE (five characters, no text from the database) so callers can
+// tell a deadlock/serialization failure (retryable 503 busy) from other errors. The message stays generic.
+export class RepositoryError extends Error {
+  constructor(readonly sqlState: string | null) {
+    super('relay repository unavailable');
+    this.name = 'RepositoryError';
+  }
+
+  get retryable(): boolean {
+    return this.sqlState === '40P01' || this.sqlState === '40001';
+  }
+}
+
 export function rpcFrom(client: MinimalSupabase): Rpc {
   return async (name, args) => {
     const { data, error } = await client.rpc(name, args);
-    if (error) throw new Error('relay repository unavailable'); // details stay server-side
+    if (error) {
+      const code = (error as { code?: unknown }).code;
+      throw new RepositoryError(typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code) ? code : null); // details stay server-side
+    }
     return data;
   };
 }

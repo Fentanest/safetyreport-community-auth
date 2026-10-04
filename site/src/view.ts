@@ -28,7 +28,7 @@ export type ViewState =
   | { kind: 'failed'; traceId: string | null };
 
 const KIND_LABEL: Record<ClientKind, [string, string]> = {
-  pc: ['이 PC', 'LOCAL'],
+  pc: ['PC 프로그램', 'LOCAL'],
   docker: ['Docker / NAS 서버', 'SERVER'],
   mobile_client_server: ['연결된 서버', 'SERVER'],
 };
@@ -112,8 +112,9 @@ export class View {
     info.append(
       el('span', 'meta-label', completed ? '연결한 기기' : '연결할 기기'),
       el('div', 'device-name', device.label ?? '이름 없는 기기'),
-      el('div', 'device-kind', kindText),
     );
+    // Same text twice ("이 PC" / "이 PC") told the user nothing; show the kind only when it adds information.
+    if (kindText !== device.label) info.append(el('div', 'device-kind', kindText));
     top.append(info, el('span', 'device-label', tag));
     panel.append(top);
     const bottom = el('div', 'device-bottom');
@@ -328,7 +329,7 @@ export class View {
       case 'invalid': {
         this.setStep(1);
         const text = state.reason === 'claimed_elsewhere'
-          ? '이 연결 링크는 이미 다른 브라우저에서 열렸어요. 링크를 공유하지 말고 원래 앱에서 새로 시작해 주세요.'
+          ? '이 연결 링크는 이미 다른 창이나 브라우저에서 열렸어요. 열어 둔 창이 있으면 그 창에서 계속하고, 없으면 원래 앱에서 새로 시작해 주세요.'
           : state.reason === 'bad_link'
             ? '연결 링크가 올바르지 않아요. 원래 앱에서 연결을 다시 시작해 주세요.'
             : '로그인을 시작한 브라우저로 돌아가거나 원래 앱에서 다시 시작해 주세요.';

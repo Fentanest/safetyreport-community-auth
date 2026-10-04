@@ -113,7 +113,7 @@ const MAP_PREREQUISITES = ['202608150001_initial_schema.sql', '202609240001_anal
 // Files that build on the account registry (itself skipped without the map schema) are skipped with it.
 // Applied migrations are never edited, so this is listed here instead of adding a header to them.
 const BUILDS_ON_ACCOUNT_REGISTRY = ['202609280200_policy_2026_09_28_1.sql', '202609280400_policy_2026_09_28_1_text.sql',
-  '202609281000_policy_2026_09_28_2.sql'];
+  '202609280600_policy_consent_text.sql', '202609281000_policy_2026_09_28_2.sql', '202609281700_policy_2026_09_28_3.sql'];
 
 function migrate(env = loadStackEnv()) {
   const dir = join(repo, 'supabase/migrations');
