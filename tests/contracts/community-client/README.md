@@ -15,3 +15,5 @@ PC 서버(safetyreport)·모바일(safetyreport-mobile)·중앙 계정(safetyrep
 | `vectors/account-errors.json` | HTTP 응답 → 오류 코드·일시 오류 여부·재시도 대기 | 서버, 모바일, auth(중앙이 내는 상태 코드·retryable) |
 | `vectors/device-label.json` | 기기 이름 검증(중앙·서버)과 모바일 정리 결과 | 서버, auth, 모바일 |
 | `vectors/gate-timing.json` | 캐시 경계·새 작업 전 확인 상한, 늦은 응답 버리기 | 서버, 모바일 |
+
+2026-10-06: 이 worktree는 서버 바인딩 계약 확장에 따라 account-errors.json에 두 409 코드를 추가하고 MANIFEST를 갱신했다. upstream 클라이언트 계약 복사본 동기화는 별도 통합 작업이다.

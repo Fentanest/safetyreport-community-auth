@@ -124,7 +124,8 @@ const MAP_PREREQUISITES = ['202608150001_initial_schema.sql', '202609240001_anal
 // Files that build on the account registry (itself skipped without the map schema) are skipped with it.
 // Applied migrations are never edited, so this is listed here instead of adding a header to them.
 const BUILDS_ON_ACCOUNT_REGISTRY = ['202609280200_policy_2026_09_28_1.sql', '202609280400_policy_2026_09_28_1_text.sql',
-  '202609280600_policy_consent_text.sql', '202609281000_policy_2026_09_28_2.sql', '202609281700_policy_2026_09_28_3.sql'];
+  '202609280600_policy_consent_text.sql', '202609281000_policy_2026_09_28_2.sql', '202609281700_policy_2026_09_28_3.sql',
+  '202610061100_official_account_binding.sql'];
 
 function migrate(env = loadStackEnv()) {
   if (COMPOSED) throw new Error('composed migrations belong to the shared manifest');
@@ -134,6 +135,10 @@ function migrate(env = loadStackEnv()) {
   if (mapRepo) for (const f of MAP_PREREQUISITES) files.push({ name: f, path: join(mapRepo, 'supabase/migrations', f) });
   for (const { name, path } of files.sort((a, b) => a.name.localeCompare(b.name))) {
     const text = readFileSync(path, 'utf8');
+    if (name === '202610061100_official_account_binding.sql') {
+      console.log(`skipped ${name} (requires the full map/auth manifest composition)`);
+      continue;
+    }
     if (!mapRepo && (/^-- Depends on map /m.test(text) || BUILDS_ON_ACCOUNT_REGISTRY.includes(name))) {
       console.log(`skipped ${name} (needs the map schema: set SR_MAP_REPO)`);
       continue;

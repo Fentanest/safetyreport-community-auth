@@ -132,3 +132,30 @@ describe('community-account handler', () => {
     expect(calls.find(c => c.name === 'internal_community_delete_contributions')!.args).toEqual({ p_user: UID, p_session: SID });
   });
 });
+
+
+describe('official account binding API extension', () => {
+  it.each(['official_account_mismatch', 'official_account_taken'])('maps %s to nonretryable 409 and limits error disclosure', async code => {
+    const { handler } = setup({ rpc: () => ({ error: code, bound_dataset_key: 'a'.repeat(64),
+      user_id: 'OTHER-USER', active_writer: { device_label: 'PRIVATE' }, required_version: 'PRIVATE' }) });
+    const r = await handler(req('status', { protocol: 1 }));
+    const j = await r.json();
+    expect(r.status).toBe(409); expect(j.error.code).toBe(code); expect(j.error.retryable).toBe(false);
+    expect(j.error.bound_dataset_key).toBe(code === 'official_account_mismatch' ? 'a'.repeat(64) : undefined);
+    expect(JSON.stringify(j)).not.toMatch(/OTHER-USER|PRIVATE/);
+    if (code === 'official_account_taken') expect(j.error.message).toContain('운영자에게 문의');
+  });
+  it('returns official_account status and official_account_released from SQL', async () => {
+    const official = { dataset_key: 'a'.repeat(64), bound_at: '2026-10-06T00:00:00Z' };
+    const { handler } = setup({ rpc: n => n === 'internal_account_status' ? { official_account: official } : { official_account_released: true } });
+    expect((await (await handler(req('status', { protocol: 1 }))).json()).official_account).toEqual(official);
+    expect((await (await handler(req('contributions-delete', { protocol: 1, confirm: 'DELETE_MY_SHARED_REPORTS' }))).json()).official_account_released).toBe(true);
+  });
+  it('does not expose the operator release through the user endpoint', async () => {
+    const { handler, calls } = setup();
+    const r = await handler(req('official-account-release', { protocol: 1 }));
+    expect(r.status).toBe(404); expect(await errorCode(r)).toBe('not_found');
+    expect(calls.some(c => c.name === 'internal_account_release_official_account')).toBe(false);
+  });
+
+});

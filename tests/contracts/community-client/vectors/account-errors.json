@@ -331,6 +331,8 @@
   }
  ],
  "central_codes": {
+    "official_account_mismatch": { "http_status": 409, "retryable": false },
+    "official_account_taken": { "http_status": 409, "retryable": false },
   "invalid_request": {
    "http_status": 400,
    "retryable": false

@@ -25,12 +25,13 @@ export const ACCOUNT_ACTIONS = ['status', 'policy', 'consent', 'consent-revoke',
   'connections-revoke', 'contributions-delete'] as const;
 type Action = typeof ACCOUNT_ACTIONS[number];
 
-type Code = 'invalid_request' | 'unsupported_protocol' | 'method_not_allowed' | 'not_found' | 'auth_required' |
+type Code = 'official_account_mismatch' | 'official_account_taken' | 'invalid_request' | 'unsupported_protocol' | 'method_not_allowed' | 'not_found' | 'auth_required' |
   'kakao_required' | 'policy_mismatch' | 'contributor_suspended' | 'writer_conflict' | 'connection_revoked' |
   'connection_superseded' | 'connection_suspended' | 'stale_grant' | 'rate_limited' | 'busy' | 'service_disabled' | 'server_error';
 
 // 오류 코드별 HTTP 상태와 retryable — 클라이언트 규칙 contracts/community-client(account-errors.json central_codes)과 같아야 한다.
 export const STATUS: Record<Code, number> = {
+  official_account_mismatch: 409, official_account_taken: 409,
   invalid_request: 400, unsupported_protocol: 400, method_not_allowed: 405, not_found: 404, auth_required: 401,
   kakao_required: 403, policy_mismatch: 409, contributor_suspended: 403, writer_conflict: 409,
   connection_revoked: 409, connection_superseded: 409, connection_suspended: 409, stale_grant: 409, rate_limited: 429, busy: 503,
@@ -38,6 +39,8 @@ export const STATUS: Record<Code, number> = {
 };
 export const RETRYABLE = new Set<Code>(['rate_limited', 'busy', 'server_error']);
 const MESSAGES: Record<Code, string> = {
+  official_account_mismatch: 'This community account is bound to another official account. Delete shared reports before changing accounts.',
+  official_account_taken: 'This official account is already bound. Please contact an operator (운영자에게 문의해 주세요).',
   invalid_request: 'Request body is not valid for this action.', unsupported_protocol: 'Unsupported protocol version.',
   method_not_allowed: 'Only POST is supported.', not_found: 'Not found.',
   auth_required: 'A valid community sign-in is required.', kakao_required: 'A Kakao-linked community account is required.',
@@ -96,11 +99,14 @@ function rpcError(result: Record<string, unknown>): never {
     kakao_required: 'kakao_required', policy_mismatch: 'policy_mismatch', contributor_suspended: 'contributor_suspended',
     writer_conflict: 'writer_conflict', not_found: 'not_found', connection_revoked: 'connection_revoked',
     connection_superseded: 'connection_superseded', connection_suspended: 'connection_suspended', invalid_request: 'invalid_request',
-    stale_grant: 'stale_grant',
+    stale_grant: 'stale_grant', official_account_mismatch: 'official_account_mismatch', official_account_taken: 'official_account_taken',
   };
   const extra: Record<string, unknown> = {};
-  if (result.active_writer) extra.active_writer = result.active_writer;
-  if (result.required_version) extra.required_version = result.required_version;
+  if (code === 'official_account_mismatch' && typeof result.bound_dataset_key === 'string' && HEX64.test(result.bound_dataset_key)) {
+    extra.bound_dataset_key = result.bound_dataset_key;
+  }
+  if (code === 'writer_conflict' && result.active_writer) extra.active_writer = result.active_writer;
+  if (code === 'policy_mismatch' && result.required_version) extra.required_version = result.required_version;
   return fail(known[code] ?? 'server_error', extra);
 }
 
