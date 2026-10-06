@@ -148,3 +148,7 @@ relay `/complete` 는 "원래 기기가 세션을 저장했다"는 표시일 뿐
 원래 기기는 relay 완료 뒤 같은 세션의 access token 으로 `community-account/status` → (동의) `consent` → `connections` 를 호출한다.
 relay 의 pre-login capability 검증과 계정 API 의 사용자 인증은 코드·설정·테스트가 분리되어 있다(전역 verify_jwt 변경 금지).
 계약 정본: `safetyreport-community-map/contracts/community-ingest/account-api.md`, 게이트 판정: `gate.md`.
+
+## 2026-10-06 shared query audit
+
+The account/consent/connection/relay RPC signatures, purpose-bound capability checks, response fields, state transitions, row locks and create-capacity advisory lock are unchanged. The audit measured the current `202610050100` definitions with synthetic local 30/300 accounts, 4 grant-history rows per account, 1–3 connections, 600/6,000 relay requests and both custom/generic plans. Map-owned SQL performs the performance changes; no auth product migration or Edge redeploy is introduced. See `docs/implementation/query-audit-20261006/` in the map repository for the shared inventory, measurements and deployment order.

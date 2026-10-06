@@ -1,0 +1,268 @@
+{
+  "generatedAt": "2026-10-06T01:56:57.713Z",
+  "browser": "chromium (playwright 1.63.0)",
+  "data": "local stack + mock Kakao",
+  "results": {
+    "U01": {
+      "pass": true,
+      "screenshot": "docs/implementation/query-audit-20261006/evidence/browser/screenshots/empty-1440-light.png"
+    },
+    "happyPath": {
+      "pass": true,
+      "screenshots": [
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-1440-light.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/waiting-1440-light.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/success-1440-light.png"
+      ],
+      "hosts": [
+        "127.0.0.1:54400",
+        "127.0.0.1:56321",
+        "127.0.0.1:56480",
+        "host.docker.internal:56410"
+      ],
+      "tokenCallsFromBrowser": 0,
+      "referersFromOurPages": 0,
+      "idpRedirectReferer": [
+        "http://host.docker.internal:56410/"
+      ],
+      "consoleMessages": [],
+      "requestCount": 20
+    },
+    "networkAndRefresh": {
+      "pass": true,
+      "screenshots": [
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-390-dark.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/network-390-dark.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/waiting-390-dark.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/success-390-dark.png"
+      ]
+    },
+    "denied": {
+      "pass": true,
+      "screenshot": "docs/implementation/query-audit-20261006/evidence/browser/screenshots/cancelled-oauth-1440-light.png"
+    },
+    "callbackWithoutContext": {
+      "pass": true,
+      "screenshot": "docs/implementation/query-audit-20261006/evidence/browser/screenshots/invalid-callback-1440-light.png"
+    },
+    "multiTab": {
+      "pass": true,
+      "screenshot": "docs/implementation/query-audit-20261006/evidence/browser/screenshots/claimed-elsewhere-1440-light.png"
+    },
+    "states": {
+      "pass": true,
+      "screenshots": [
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/cancelled-1440-light.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/expired-1440-light.png",
+        "docs/implementation/query-audit-20261006/evidence/browser/screenshots/storage-blocked-320-light.png"
+      ]
+    },
+    "U11": {
+      "pass": true,
+      "report": [
+        {
+          "scheme": "light",
+          "width": 1440,
+          "height": 900,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-1440-light.png"
+          ]
+        },
+        {
+          "scheme": "light",
+          "width": 1024,
+          "height": 768,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        },
+        {
+          "scheme": "light",
+          "width": 768,
+          "height": 1024,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        },
+        {
+          "scheme": "light",
+          "width": 390,
+          "height": 844,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-390-light.png",
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-390-light-checked.png"
+          ]
+        },
+        {
+          "scheme": "light",
+          "width": 320,
+          "height": 740,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-320-light.png",
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-320-light-checked.png"
+          ]
+        },
+        {
+          "scheme": "light",
+          "width": 640,
+          "height": 400,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        },
+        {
+          "scheme": "dark",
+          "width": 1440,
+          "height": 900,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-1440-dark.png"
+          ]
+        },
+        {
+          "scheme": "dark",
+          "width": 1024,
+          "height": 768,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        },
+        {
+          "scheme": "dark",
+          "width": 768,
+          "height": 1024,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        },
+        {
+          "scheme": "dark",
+          "width": 390,
+          "height": 844,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-390-dark.png",
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-390-dark-checked.png"
+          ]
+        },
+        {
+          "scheme": "dark",
+          "width": 320,
+          "height": 740,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": [
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-320-dark.png",
+            "docs/implementation/query-audit-20261006/evidence/browser/screenshots/ready-longlabel-320-dark-checked.png"
+          ]
+        },
+        {
+          "scheme": "dark",
+          "width": 640,
+          "height": 400,
+          "overflowPx": 0,
+          "helpOverflowPx": 0,
+          "kakaoButtonHeight": 52,
+          "kakaoImage": {
+            "w": 224,
+            "h": 46
+          },
+          "screenshots": []
+        }
+      ],
+      "note": "640x400 approximates a 1280x800 window at 200% zoom; not a browser-zoom test"
+    },
+    "U12": {
+      "pass": true,
+      "tabOrder": [
+        "연결 카드로 건너뛰기",
+        "theme-toggle",
+        "confirm-start",
+        "연결 취소",
+        "개인정보 안내",
+        "연결 도움말",
+        "연결 카드로 건너뛰기\n  \n    \n"
+      ],
+      "focusOutline": "solid",
+      "reducedMotionTransition": "0s",
+      "liveRegion": "polite",
+      "axe": {
+        "readyLight": [],
+        "readyDark": [],
+        "privacy": []
+      },
+      "note": "axe covers automatable WCAG checks only; no screen-reader session was run"
+    },
+    "U08": {
+      "pass": true,
+      "base": "/sub/"
+    },
+    "configMissing": {
+      "pass": true,
+      "screenshot": "docs/implementation/query-audit-20261006/evidence/browser/screenshots/config-missing-390-light.png"
+    }
+  }
+}

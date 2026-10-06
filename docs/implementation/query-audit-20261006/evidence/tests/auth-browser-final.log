@@ -1,0 +1,8 @@
+
+ RUN  v5.0.1 /home/better0101/projects/worktree/auth-perf
+
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  10:56:15
+   Duration  41.95s (tests 98%, import 1%)

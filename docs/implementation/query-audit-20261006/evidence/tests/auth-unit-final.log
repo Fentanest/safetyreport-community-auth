@@ -1,0 +1,12 @@
+
+ RUN  v5.0.1 /home/better0101/projects/worktree/auth-perf
+
+
+ Test Files  6 passed | 2 skipped (8)
+      Tests  54 passed | 35 skipped (89)
+   Start at  10:03:23
+   Duration  1.23s (transform 58%, import 30%, tests 11%, worker 1%)
+
+  Transform  transforming modules took 2.79s · 58% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

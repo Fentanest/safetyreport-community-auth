@@ -15,11 +15,15 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '../..');
 const runtimeDir = join(repo, '.safeauth-stack');
-const envFile = join(runtimeDir, 'stack.env');
+const envFile = join(runtimeDir, process.env.SAFEAUTH_COMPOSED_STACK === '1' ? 'composed.env' : 'stack.env');
 const composeFile = join(here, 'compose.yml');
 const project = 'safeauth-local';
 
-export const PORTS = { pg: 54432, auth: 54499, rest: 54498, gateway: 54400, kakao: 54410, site: 8480 };
+// Reuse the map/auth integration stack without starting or deleting another Docker project.
+export const COMPOSED = process.env.SAFEAUTH_COMPOSED_STACK === '1';
+export const PORTS = COMPOSED
+  ? { pg: 56322, auth: 56321, rest: 56321, gateway: 54400, kakao: 56410, site: 56480 }
+  : { pg: 54432, auth: 54499, rest: 54498, gateway: 54400, kakao: 54410, site: 8480 };
 
 const b64url = buf => Buffer.from(buf).toString('base64url');
 
@@ -31,7 +35,7 @@ function signJwt(payload, secret) {
 }
 
 export function loadStackEnv() {
-  if (!existsSync(envFile)) throw new Error('stack env missing: run `node tests/stack/stack.mjs up`');
+  if (!existsSync(envFile)) throw new Error(COMPOSED ? 'composed env missing: run configure-composed.mjs --map /path/to/map' : 'stack env missing: run `node tests/stack/stack.mjs up`');
   const out = {};
   for (const line of readFileSync(envFile, 'utf8').split('\n')) {
     const m = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
@@ -61,6 +65,7 @@ function ensureEnv() {
 }
 
 function compose(args, env) {
+  if (COMPOSED) throw new Error('cannot mutate Docker composition in composed-stack test mode');
   const r = spawnSync('docker', ['compose', '-p', project, '-f', composeFile, ...args], {
     stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, ...env },
   });
@@ -73,6 +78,11 @@ function dbContainer(env) {
 }
 
 export function psql(sql, { user = 'supabase_admin', env = loadStackEnv(), tuplesOnly = false } = {}) {
+  if (COMPOSED) {
+    const args = ['exec', '-i', 'supabase_db_ci0926-int', 'psql', '-X', '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q'];
+    if (tuplesOnly) args.push('-At');
+    return execFileSync('docker', args, { input: sql, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+  }
   const args = ['exec', '-i', '-e', `PGPASSWORD=${env.SAFEAUTH_PG_PASSWORD}`, dbContainer(env),
     'psql', '-h', '127.0.0.1', '-p', String(PORTS.pg), '-U', user, '-d', 'postgres',
     '-v', 'ON_ERROR_STOP=1', '--no-psqlrc', '-q'];
@@ -90,6 +100,7 @@ async function waitFor(label, check, timeoutMs = 120000) {
 }
 
 async function up() {
+  if (COMPOSED) throw new Error('composed stack is externally owned; up/down/migrate are forbidden');
   const env = ensureEnv();
   compose(['up', '-d', 'db'], env);
   await waitFor('postgres', () => psql('select 1', { env, tuplesOnly: true }).trim() === '1');
@@ -116,6 +127,7 @@ const BUILDS_ON_ACCOUNT_REGISTRY = ['202609280200_policy_2026_09_28_1.sql', '202
   '202609280600_policy_consent_text.sql', '202609281000_policy_2026_09_28_2.sql', '202609281700_policy_2026_09_28_3.sql'];
 
 function migrate(env = loadStackEnv()) {
+  if (COMPOSED) throw new Error('composed migrations belong to the shared manifest');
   const dir = join(repo, 'supabase/migrations');
   const mapRepo = process.env.SR_MAP_REPO ? resolve(process.env.SR_MAP_REPO) : null;
   const files = readdirSync(dir).filter(f => f.endsWith('.sql')).map(f => ({ name: f, path: join(dir, f) }));

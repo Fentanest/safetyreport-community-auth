@@ -1,0 +1,6 @@
+
+> safetyreport-community-auth@0.1.0 scan
+> node scripts/verify-artifact.mjs --dir dist
+
+safeauth artifact: 11 files, connect-src 'none'
+PASS

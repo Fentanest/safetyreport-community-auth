@@ -10,8 +10,8 @@ const ACCOUNTS = {
   B: { id: 910002, nickname: '로컬테스트B', email: 'local-b@example.invalid' },
 };
 
-export function startMockKakao({ port = 54410, clientSecret, clientId = 'mock-kakao-client',
-  redirectUri = 'http://127.0.0.1:54400/auth/v1/callback' } = {}) {
+export function startMockKakao({ port = process.env.SAFEAUTH_COMPOSED_STACK === '1' ? 56410 : 54410, clientSecret, clientId = 'mock-kakao-client',
+  redirectUri = process.env.SAFEAUTH_COMPOSED_STACK === '1' ? 'http://127.0.0.1:56321/auth/v1/callback' : 'http://127.0.0.1:54400/auth/v1/callback' } = {}) {
   const codes = new Map();
   const tokens = new Map();
   const html = body => `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>MOCK Kakao</title>
@@ -75,7 +75,7 @@ a{display:block;margin:10px 0;padding:14px;border:1px solid #999;border-radius:1
     }
     return send(404, 'text/plain', 'not found');
   });
-  return new Promise(resolve => server.listen(port, '127.0.0.1', () => resolve(server)));
+  return new Promise(resolve => server.listen(port, process.env.SAFEAUTH_COMPOSED_STACK === '1' ? '0.0.0.0' : '127.0.0.1', () => resolve(server)));
 }
 
 // Drives the mock provider without a browser: follows GoTrue -> mock Kakao -> GoTrue
@@ -83,6 +83,8 @@ a{display:block;margin:10px 0;padding:14px;border:1px solid #999;border-radius:1
 export async function followOAuth(authorizeUrl, choice = 'A') {
   const step1 = await fetch(authorizeUrl, { redirect: 'manual' });
   const kakaoAuthorize = new URL(step1.headers.get('location'));
+  // The composed Docker-only hostname is resolved locally without changing host DNS.
+  if (process.env.SAFEAUTH_COMPOSED_STACK === '1' && kakaoAuthorize.hostname === 'host.docker.internal') kakaoAuthorize.hostname = '127.0.0.1';
   const state = kakaoAuthorize.searchParams.get('state');
   const decide = new URL('/oauth/decide', kakaoAuthorize);
   decide.search = new URLSearchParams({ state, choice }).toString();

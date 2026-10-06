@@ -110,3 +110,7 @@ supabase functions deploy community-auth-relay   # config.toml: verify_jwt=false
 4. Docker(LAN IP/사용자 도메인)에서 반복. Supabase Redirect URLs에 사용자별 주소를 추가하지 않았음을 확인.
 5. 모바일 Standalone·Client 각각 반복. 연결 해제 후 다른 기기 로그인이 유지되는지(scope=local).
 6. 실패 시 `AUTH_RELAY_ENABLED=false` 후 로그의 `trace`만 공유(코드·토큰·링크 금지).
+
+## 2026-10-06 shared query audit
+
+No new auth SQL or product Edge/site change is part of this audit. Keep the existing, unedited `202610050100_relay_hardening.sql` in the shared migration order before map `202610060100`, `060200`, `060300`, `060400`. Apply only missing versions after checking the actual migration ledger; the audit did not connect to production. The map repository's `docs/implementation/query-audit-20261006/MIGRATION.md` contains operator commands and rollback details. `SAFEAUTH_COMPOSED_STACK=1` is a local test mode only and refuses Docker stack lifecycle operations.

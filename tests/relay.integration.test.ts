@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomSecret } from '../server/crypto.ts';
 import { Browser, Device, expectOk, flowToCode, post } from './support/actors.ts';
 import { startMockKakao } from './stack/mock-kakao.mjs';
-import { loadStackEnv, PORTS, psql } from './stack/stack.mjs';
+import { loadStackEnv, PORTS, psql, COMPOSED } from './stack/stack.mjs';
 import { startGateway } from './stack/gateway.ts';
 
 const enabled = process.env.SAFEAUTH_STACK === '1';
@@ -112,7 +112,7 @@ describe.skipIf(!enabled)('safeauth relay on the local Supabase stack', () => {
       const url = new URL(`${BASE}/auth/v1/authorize`);
       url.search = new URLSearchParams({ provider: 'kakao', redirect_to: 'https://attacker.invalid/cb', code_challenge: 'x'.repeat(43), code_challenge_method: 's256' }).toString();
       const { landed } = await new Browser(BASE, ORIGIN).login(url.toString());
-      expect(landed.origin).toBe('http://127.0.0.1:8490'); // GOTRUE_SITE_URL, not the attacker
+      expect(landed.origin).toBe(COMPOSED ? 'http://127.0.0.1:56480' : 'http://127.0.0.1:8490'); // GOTRUE_SITE_URL, not the attacker
       expect(landed.pathname).toBe('/');
     });
 
@@ -356,7 +356,9 @@ describe.skipIf(!enabled)('safeauth relay on the local Supabase stack', () => {
       expect(unconfirmed.status).toBe(400);
       const prepared = expectOk(await b.prepare());
       const url = new URL(String(prepared.json.authorize_url));
-      expect(url.origin + url.pathname).toBe(`${BASE}/auth/v1/authorize`);
+      // The composed Deno entry uses Kong directly; the in-process adapter uses this gateway.
+      const authBase = COMPOSED && process.env.SAFEAUTH_RELAY_UPSTREAM ? 'http://127.0.0.1:56321' : BASE;
+      expect(url.origin + url.pathname).toBe(`${authBase}/auth/v1/authorize`);
       expect(url.searchParams.get('redirect_to')).toBe(`${ORIGIN}/callback.html`);
     });
 

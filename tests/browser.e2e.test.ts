@@ -7,20 +7,23 @@
 // Kakao is the local mock; this is not a hosted Kakao E2E.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { join, resolve, relative } from 'node:path';
 import { type Browser as PwBrowser, chromium, type Page } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Device, expectOk } from './support/actors.ts';
 import { startGateway } from './stack/gateway.ts';
-import { loadStackEnv, PORTS, psql } from './stack/stack.mjs';
+import { loadStackEnv, PORTS, psql, COMPOSED } from './stack/stack.mjs';
 import { startStaticServer } from './stack/static-server.mjs';
 
 const enabled = process.env.SAFEAUTH_STACK === '1' && process.env.SAFEAUTH_BROWSER === '1';
 const repo = resolve(__dirname, '..');
+const KAKAO_HOST = COMPOSED ? 'host.docker.internal:56410' : `127.0.0.1:${PORTS.kakao}`;
+const SUB_PORT = COMPOSED ? 56490 : 8481;
 const SITE = `http://127.0.0.1:${PORTS.site}`;
 const GW = `http://127.0.0.1:${PORTS.gateway}`;
-const SHOTS = join(repo, 'docs/qa/screenshots');
-const RESULTS = join(repo, 'docs/qa/browser-results.json');
+const QA = process.env.SAFEAUTH_QA_DIR ? resolve(process.env.SAFEAUTH_QA_DIR) : join(repo, 'docs/qa');
+const SHOTS = join(QA, 'screenshots');
+const RESULTS = join(QA, 'browser-results.json');
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 
 interface Recorder { requests: { url: string; method: string; type: string; referer: string | null }[]; console: string[]; errors: string[] }
@@ -50,7 +53,7 @@ async function shot(page: Page, name: string, fullPage = true): Promise<string> 
   mkdirSync(SHOTS, { recursive: true });
   const path = join(SHOTS, `${name}.png`);
   await page.screenshot({ path, fullPage });
-  return `docs/qa/screenshots/${name}.png`;
+  return relative(repo, path);
 }
 
 async function axe(page: Page): Promise<{ id: string; impact: string | null; nodes: number }[]> {
@@ -72,14 +75,14 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
   beforeAll(async () => {
     stack = loadStackEnv();
     psql("delete from private.community_auth_rate_limits;", { env: stack });
-    browser = await chromium.launch();
+    browser = await chromium.launch(COMPOSED ? { args: ['--host-resolver-rules=MAP host.docker.internal 127.0.0.1'] } : {});
     const probe = await fetch(`${SITE}/`);
     if (!probe.ok) throw new Error('serve-local.ts is not running');
   });
 
   afterAll(async () => {
     await browser?.close();
-    mkdirSync(join(repo, 'docs/qa'), { recursive: true });
+    mkdirSync(QA, { recursive: true });
     writeFileSync(RESULTS, JSON.stringify({ generatedAt: new Date().toISOString(), browser: 'chromium (playwright 1.63.0)', data: 'local stack + mock Kakao', results }, null, 2) + '\n');
   });
 
@@ -114,7 +117,7 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
     await page.locator('#confirm-start').check();
     expect(await kakao.isEnabled()).toBe(true);
     await kakao.click();
-    await page.waitForURL(`http://127.0.0.1:${PORTS.kakao}/oauth/authorize**`);
+    await page.waitForURL(`http://${KAKAO_HOST}/oauth/authorize**`);
     await page.locator('#mock-account-a').click();
     await page.waitForURL(`${SITE}/callback.html`);
     await page.locator('#auth-card h2', { hasText: '원래 기기에서 계정을 확인해 주세요' }).waitFor();
@@ -150,10 +153,10 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
     // Our pages send no Referer. The only one is the identity provider's own page origin
     // on its redirect into callback.html (the IdP's policy; origin only, no secret).
     const referers = ours.filter(r => r.referer);
-    expect(referers.every(r => r.referer === `http://127.0.0.1:${PORTS.kakao}/` && r.type === 'document')).toBe(true);
+    expect(referers.every(r => r.referer === `http://${KAKAO_HOST}/` && r.type === 'document')).toBe(true);
     expect(referers.some(r => /safeauth|[?#]/.test(r.referer ?? ''))).toBe(false);
     const hosts = [...new Set(rec.requests.map(r => new URL(r.url).host))].sort();
-    expect(hosts).toEqual([`127.0.0.1:${PORTS.gateway}`, `127.0.0.1:${PORTS.kakao}`, `127.0.0.1:${PORTS.site}`].sort());
+    expect(hosts).toEqual([`127.0.0.1:${PORTS.gateway}`, KAKAO_HOST, `127.0.0.1:${PORTS.site}`, ...(COMPOSED ? ['127.0.0.1:56321'] : [])].sort());
     expect(rec.errors).toEqual([]);
     results.happyPath = {
       pass: true, screenshots: [readyShot, waitingShot, successShot], hosts, tokenCallsFromBrowser: 0,
@@ -173,7 +176,7 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
     const readyDark = await shot(page, 'ready-390-dark');
     await page.locator('#confirm-start').check();
     await page.locator('#kakao-button').click();
-    await page.waitForURL(`http://127.0.0.1:${PORTS.kakao}/oauth/authorize**`);
+    await page.waitForURL(`http://${KAKAO_HOST}/oauth/authorize**`);
     await page.route('**/functions/v1/community-auth-relay/**', route => route.abort('internetdisconnected'));
     await page.locator('#mock-account-b').click();
     await waitTitle(page, '연결 상태를 확인하지 못했어요', 20000);
@@ -236,7 +239,7 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
     const p2 = await two.newPage();
     await p2.goto(a.bootstrapUrl);
     await waitTitle(p2, '연결 정보를 찾을 수 없어요');
-    expect(await p2.locator('#auth-card').textContent()).toContain('이미 다른 브라우저에서 열렸어요');
+    expect(await p2.locator('#auth-card').textContent()).toContain('이미 다른 창이나 브라우저에서 열렸어요');
     const claimedElsewhere = await shot(p2, 'claimed-elsewhere-1440-light');
     const b = newDevice('두번째 요청', 'docker');
     expectOk(await b.create());
@@ -374,12 +377,12 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
   });
 
   it('U08: the same pages also work from a subpath (/sub/) build', async () => {
-    const gw2 = await startGateway({ port: PORTS.gateway + 1, siteUrl: 'http://127.0.0.1:8481/sub/', browserOrigins: 'http://127.0.0.1:8481' });
-    const site2 = await startStaticServer({ root: join(repo, '.safeauth-stack/site-sub'), port: 8481 });
+    const gw2 = await startGateway({ port: PORTS.gateway + 1, siteUrl: `http://127.0.0.1:${SUB_PORT}/sub/`, browserOrigins: `http://127.0.0.1:${SUB_PORT}` });
+    const site2 = await startStaticServer({ root: join(repo, '.safeauth-stack/site-sub'), port: SUB_PORT });
     try {
       const device = new Device(`http://127.0.0.1:${PORTS.gateway + 1}`, stack.SAFEAUTH_ANON_KEY, '하위 경로 배포 확인', 'pc');
       expectOk(await device.create());
-      expect(device.bootstrapUrl.startsWith('http://127.0.0.1:8481/sub/#r=')).toBe(true);
+      expect(device.bootstrapUrl.startsWith(`http://127.0.0.1:${SUB_PORT}/sub/#r=`)).toBe(true);
       const context = await ctx();
       const page = await context.newPage();
       await page.goto(device.bootstrapUrl);
@@ -387,13 +390,13 @@ describe.skipIf(!enabled)('safeauth central pages in a real browser', () => {
       await page.locator('#confirm-start').check();
       await page.locator('#kakao-button').click();
       await page.locator('#mock-account-a').click();
-      await page.waitForURL('http://127.0.0.1:8481/sub/callback.html');
+      await page.waitForURL(`http://127.0.0.1:${SUB_PORT}/sub/callback.html`);
       await waitTitle(page, '원래 기기에서 계정을 확인해 주세요');
       const polled = expectOk(await device.poll());
       expect((await device.exchange(String(polled.json.auth_code))).status).toBe(200);
       expectOk(await device.complete());
       await waitTitle(page, '기기 연결이 완료됐어요', 15000);
-      await page.goto('http://127.0.0.1:8481/sub/callback.html');
+      await page.goto(`http://127.0.0.1:${SUB_PORT}/sub/callback.html`);
       await waitTitle(page, '연결 정보를 찾을 수 없어요'); // direct reload after completion: no context, no 404
       results.U08 = { pass: true, base: '/sub/' };
       await context.close();

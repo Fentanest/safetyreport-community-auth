@@ -1,0 +1,21 @@
+
+> safetyreport-community-auth@0.1.0 build
+> tsc -p tsconfig.json && vite build --config site/vite.config.ts
+
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 18 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                    3.84 kB │ gzip: 1.61 kB
+dist/callback.html                 3.85 kB │ gzip: 1.62 kB
+dist/help.html                     8.56 kB │ gzip: 3.51 kB
+dist/privacy.html                  9.32 kB │ gzip: 3.82 kB
+dist/assets/common-qP8wMi4q.css   11.78 kB │ gzip: 3.31 kB
+dist/assets/doc-DEvg2RDD.js        0.48 kB │ gzip: 0.37 kB
+dist/assets/callback-C-etif1Q.js   1.49 kB │ gzip: 0.66 kB
+dist/assets/index-CTN1cTck.js      2.16 kB │ gzip: 0.98 kB
+dist/assets/common-CyznMgf5.js     3.59 kB │ gzip: 1.54 kB
+dist/assets/view-DnqzYAmk.js      19.06 kB │ gzip: 6.51 kB
+
+✓ built in 219ms

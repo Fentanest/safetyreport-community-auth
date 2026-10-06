@@ -9,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import { clientAddressFrom, getUserIdFrom, type MinimalSupabase, rpcFrom } from '../../server/adapters.ts';
 import { loadRelayConfig } from '../../server/config.ts';
 import { createRelayHandler } from '../../server/relay.ts';
-import { loadStackEnv, PORTS } from './stack.mjs';
+import { loadStackEnv, PORTS, COMPOSED } from './stack.mjs';
 
 export interface GatewayOptions {
   port?: number;
@@ -44,7 +44,7 @@ export async function startGateway(options: GatewayOptions = {}) {
     AUTH_RELAY_ENABLED: 'true',
     AUTH_SITE_URL: options.siteUrl ?? `http://127.0.0.1:${PORTS.site}/`,
     AUTH_BROWSER_ORIGIN: options.browserOrigins ?? `http://127.0.0.1:${PORTS.site}`,
-    AUTH_JWT_ISSUER: `http://127.0.0.1:${PORTS.gateway}/auth/v1`,
+    AUTH_JWT_ISSUER: `http://127.0.0.1:${COMPOSED ? 56321 : PORTS.gateway}/auth/v1`,
     AUTH_RELAY_HASH_PEPPER: stack.AUTH_RELAY_HASH_PEPPER,
     AUTH_RELAY_ENCRYPTION_KEY: stack.AUTH_RELAY_ENCRYPTION_KEY,
     ...options.overrides,
@@ -70,8 +70,8 @@ export async function startGateway(options: GatewayOptions = {}) {
       }
       if (!headers.has('x-forwarded-for')) headers.set('x-forwarded-for', req.socket.remoteAddress ?? '127.0.0.1');
       let upstream: string | null = null;
-      if (url.pathname.startsWith('/auth/v1/')) upstream = `http://127.0.0.1:${PORTS.auth}${url.pathname.slice('/auth/v1'.length)}${url.search}`;
-      else if (url.pathname.startsWith('/rest/v1/')) upstream = `http://127.0.0.1:${PORTS.rest}${url.pathname.slice('/rest/v1'.length)}${url.search}`;
+      if (url.pathname.startsWith('/auth/v1/')) upstream = `http://127.0.0.1:${PORTS.auth}${COMPOSED ? url.pathname : url.pathname.slice('/auth/v1'.length)}${url.search}`;
+      else if (url.pathname.startsWith('/rest/v1/')) upstream = `http://127.0.0.1:${PORTS.rest}${COMPOSED ? url.pathname : url.pathname.slice('/rest/v1'.length)}${url.search}`;
       if (upstream) {
         return relay(res, await fetch(upstream, { method: req.method, headers, body, redirect: 'manual' }));
       }

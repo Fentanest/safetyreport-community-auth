@@ -1,0 +1,46 @@
+{
+  "repo": "auth",
+  "commands": "See REPRODUCE.md (map) / docs/verification.md (auth)",
+  "runs": [
+    {
+      "log": "auth-unit-final.log",
+      "summary": [
+        "Test Files  6 passed | 2 skipped (8)",
+        "Tests  54 passed | 35 skipped (89)",
+        "Duration  1.23s (transform 58%, import 30%, tests 11%, worker 1%)"
+      ]
+    },
+    {
+      "log": "auth-relay-final.log",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  24 passed (24)",
+        "Duration  6.77s (tests 95%, transform 3%, import 2%)"
+      ]
+    },
+    {
+      "log": "auth-deno-final.log",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  24 passed (24)",
+        "Duration  5.97s (tests 96%, transform 3%, import 2%)"
+      ]
+    },
+    {
+      "log": "auth-browser-final.log",
+      "summary": [
+        "Test Files  1 passed (1)",
+        "Tests  11 passed (11)",
+        "Duration  41.95s (tests 98%, import 1%)"
+      ]
+    },
+    {
+      "log": "auth-build-final.log",
+      "summary": []
+    },
+    {
+      "log": "auth-scan-final.log",
+      "summary": []
+    }
+  ]
+}
